@@ -1,9 +1,13 @@
 import { useState } from 'react'
 import astraApparelLogo from './astra_apparel_border_sm.png'
 import './App.css'
+import './components/UI/avatar.tsx'
+import DevShoppingAssistant from './components/UI/dev-shopping-assistant.tsx'
+import './lib/utils.ts'
+import {base,components, utilities} from './tailwind.config.js'
 import '@chatscope/chat-ui-kit-styles/dist/default/styles.min.css';
 import { MainContainer, ChatContainer, MessageList, Message, MessageInput, TypingIndicator } from "@chatscope/chat-ui-kit-react"
-
+ 
 function App() {
 	const [messages, setMessages] = useState([
 		{
