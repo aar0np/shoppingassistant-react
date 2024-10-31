@@ -1,11 +1,29 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, Moon, Sun, Code } from 'lucide-react';
 
+const DataStaxLogo = ({ isDarkMode }) => {
+  return (
+    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+      isDarkMode ? 'bg-zinc-700' : 'bg-zinc-200'
+    }`}>
+      <svg 
+        viewBox="0 0 30 13" 
+        className={`w-5 h-5 ${isDarkMode ? 'text-zinc-100' : 'text-zinc-900'}`}
+      >
+        <path
+          fill="currentColor"
+          d="M10.886.864H0v12.272h10.886l2.734-2.122V2.986L10.886.864ZM2.11 2.986h9.4v8.03h-9.4v-8.03ZM29.284 3.075V1h-9.953l-2.703 2.075v2.85L19.331 8h8.674v2.924H17.167V13h10.22l2.703-2.076V8l-2.702-2.075h-8.675v-2.85h10.571Z"
+        />
+      </svg>
+    </div>
+  );
+};
+
 const App = () => {
   const [messages, setMessages] = useState([
     {
       id: 1,
-      content: "Hello, I am the Astra Apparel shopping assistant. How can I help you?",
+      content: "Hello, what DataStax Astra, Langflow, or Cassandra gear can I help you find?",
       sender: 'assistant'
     }
   ]);
@@ -85,15 +103,11 @@ const App = () => {
           isDarkMode ? 'border-zinc-800' : 'border-zinc-200'
         }`}>
           <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-              isDarkMode ? 'bg-zinc-700' : 'bg-zinc-200'
-            }`}>
-              AI
-            </div>
+            <DataStaxLogo isDarkMode={isDarkMode} />
             <div>
               <h2 className={`text-lg font-semibold ${
                 isDarkMode ? 'text-zinc-100' : 'text-zinc-900'
-              }`}>Astra Apparel Assistant</h2>
+              }`}>DataStax Apparel Assistant</h2>
               <p className="text-sm text-emerald-500">Online</p>
             </div>
           </div>
@@ -155,7 +169,7 @@ const App = () => {
                     : 'bg-white text-zinc-800 border border-zinc-200'
                 }`}>
                   <Code className="inline-block mr-2 h-4 w-4 text-emerald-500" />
-                  The Astra Apparel assistant is typing...
+                  Checking stock availability...
                 </div>
               </div>
             )}
@@ -178,9 +192,9 @@ const App = () => {
                   : 'bg-zinc-100 border-zinc-200 text-zinc-900 placeholder-zinc-500'
               } border`}
             />
-            <button
+           <button
               type="submit"
-              className="p-2 rounded-md bg-emerald-600 hover:bg-emerald-700 text-zinc-100"
+              className="p-3 rounded-md bg-emerald-600 hover:bg-emerald-700 text-zinc-100"
             >
               <Send className="h-4 w-4" />
               <span className="sr-only">Send</span>
