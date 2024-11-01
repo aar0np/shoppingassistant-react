@@ -31,6 +31,8 @@ const App = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isTyping, setIsTyping] = useState(false);
   const scrollAreaRef = useRef(null);
+  var imageTags = "";
+  var images;
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -63,6 +65,7 @@ const App = () => {
     };
     
     try {
+      // send to Langflow
       const response = await fetch(process.env.REACT_APP_LANGFLOW_URL, {
         method: "POST",
         headers: {
@@ -71,6 +74,7 @@ const App = () => {
         body: JSON.stringify(langflowMessage)
       });
       
+      // get from Langflow
       const data = await response.json();
       setMessages([
         ...chatMessages,
@@ -85,6 +89,45 @@ const App = () => {
     } finally {
       setIsTyping(false);
     }
+  }
+
+  function findPreviousSeperator(text,startIndex) {
+    for (let i=startIndex; i > 0; i--) {
+      // filter out spaces, single/double quotes, opening brackets and braces
+      if (text.charCodeAt(i) === 32 ||  // space
+          text.charCodeAt(i) === 34 ||  // "
+          text.charCodeAt(i) === 39 ||  // '
+          text.charCodeAt(i) === 91 ||  // [
+          text.charCodeAt(i) === 123) { // {
+        return i;
+      }
+    }
+    // no space found, return -1
+    return -1;
+  }
+
+  function findImages(msgContent) {
+    var currentImages = [];
+    var startPosition = 0;
+    var jpgPosition = 0;
+
+    while (jpgPosition > -1) {
+      var jpgPosition = msgContent.indexOf(".jpg", startPosition);
+      
+      if (jpgPosition > -1) {
+        var imgPosition = findPreviousSeperator(msgContent, jpgPosition);
+        var strLength = (jpgPosition + 3) - imgPosition;
+        var imageName = msgContent.substr(imgPosition + 1, strLength)
+
+        if (!currentImages.includes(imageName)) {
+          currentImages.push(imageName)
+        }
+      }
+
+      startPosition = jpgPosition + 1;
+    }
+
+    images = currentImages
   }
 
   return (
@@ -158,6 +201,10 @@ const App = () => {
                     <Code className="inline-block mr-2 h-4 w-4 text-emerald-500" />
                   )}
                   {message.content}
+                </div>
+                <div id="image-container">
+                {findImages(message.content)}
+                {images.map(img => `<img src="/images/${img}" height=100>`)}
                 </div>
               </div>
             ))}
