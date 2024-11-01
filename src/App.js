@@ -98,6 +98,7 @@ const App = () => {
           ? 'bg-zinc-900 border-zinc-800'
           : 'bg-white border-zinc-200'
       } border`}>
+      
         {/* Header */}
         <div className={`flex items-center justify-between p-4 border-b ${
           isDarkMode ? 'border-zinc-800' : 'border-zinc-200'
