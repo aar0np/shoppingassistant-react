@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, Moon, Sun, Code } from 'lucide-react';
 
+
 const DataStaxLogo = ({ isDarkMode }) => {
   return (
     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
@@ -18,73 +19,83 @@ const DataStaxLogo = ({ isDarkMode }) => {
     </div>
   );
 };
-
-const Message = ({ 
-  message = { 
-    sender: 'assistant',
-    content: ''
-  }, 
-  isDarkMode = true 
-}) => {
-  const isAssistant = message?.sender === 'assistant';
+  // Message component 
+  const Message = ({ 
+    message = { 
+      sender: 'assistant',
+      content: ''
+    }, 
+    isDarkMode = true 
+  }) => {
+    const isAssistant = message?.sender === 'assistant';
   
-  const baseStyles = `
-    rounded-lg p-3 max-w-[80%]
-    ${isDarkMode 
-      ? isAssistant ? 'bg-zinc-800 text-zinc-300' : 'bg-zinc-700 text-zinc-200'
-      : isAssistant ? 'bg-white text-zinc-800 border border-zinc-200' : 'bg-zinc-200 text-zinc-800'
-    }
-  `;
-
-  const proseStyles = `
-    prose ${isDarkMode ? 'prose-invert' : ''} 
-    prose-zinc 
-    max-w-none
-    prose-headings:mb-2 prose-headings:mt-4
-    prose-p:my-2
-    prose-pre:bg-zinc-900 prose-pre:text-zinc-100
-    prose-code:text-emerald-500
-    prose-strong:text-emerald-500
-    prose-ul:my-2 prose-ul:list-disc prose-ul:pl-4
-    prose-li:my-0
-  `;
-
-  const content = message?.content || '';
-
-  // Format paragraphs with item names in semi-bold
-  const formatParagraph = (text) => {
-    if (text.includes('DataStax') && !text.includes('following')) {
-      const [itemName, ...rest] = text.split('\n');
-      return (
-        <>
-          <p className="font-semibold">{itemName}</p>
-          {rest.map((line, i) => (
-            <p key={i}>{line}</p>
-          ))}
-        </>
-      );
-    }
-    return <p>{text}</p>;
-  };
-
-  return (
-    <div className={`flex ${isAssistant ? 'justify-start' : 'justify-end'}`}>
-      <div className={baseStyles}>
-        {isAssistant && (
-          <Code className="inline-block mr-2 h-4 w-4 text-emerald-500" />
-        )}
-        <div className={isAssistant ? proseStyles : ''}>
-          {content.split('\n\n').map((paragraph, index) => (
-            <React.Fragment key={index}>
-              {paragraph.trim() && formatParagraph(paragraph)}
-              {!paragraph.trim() && <br />}
-            </React.Fragment>
-          ))}
+    const baseStyles = `
+      rounded-lg p-3 max-w-[80%]
+      ${isDarkMode 
+        ? isAssistant ? 'bg-zinc-800 text-zinc-300' : 'bg-zinc-700 text-zinc-200'
+        : isAssistant ? 'bg-white text-zinc-800 border border-zinc-200' : 'bg-zinc-200 text-zinc-800'
+      }
+    `;
+  
+    const proseStyles = `
+      prose ${isDarkMode ? 'prose-invert' : ''} 
+      prose-zinc 
+      max-w-none
+      prose-headings:mb-2 prose-headings:mt-4
+      prose-p:my-2
+      prose-pre:bg-zinc-900 prose-pre:text-zinc-100
+      prose-code:text-emerald-500
+      prose-strong:text-emerald-500
+      prose-ul:my-2 prose-ul:list-disc prose-ul:pl-4
+      prose-li:my-0
+      prose-h4:mb-4
+    `;
+  
+    const content = message?.content || '';
+  
+    // Define formatParagraph function here
+    const formatParagraph = (text) => {
+      // Regular expression to match image filenames with extensions like .jpg, .jpeg, .png, etc.
+      const imageRegex = /\b([a-zA-Z0-9_-]+\.(jpg|jpeg|png|gif))\b/g;
+      
+      // Split text by image matches and intersperse with image tags
+      const parts = text.split(imageRegex);
+  
+      return parts.map((part, index) => {
+        // Check if part matches an image filename (e.g., dsh916.jpg)
+        if (imageRegex.test(part)) {
+          return (
+            <img
+              key={index}
+              src={`/images/${part}`}  // Construct path to image
+              alt={part}
+              className="my-2 w-full max-w-md h-auto rounded-md border"
+            />
+          );
+        }
+        
+        // Render text normally if not an image
+        return <span key={index}>{part}</span>;
+      });
+    };
+  
+    return (
+      <div className={`flex ${isAssistant ? 'justify-start' : 'justify-end'}`}>
+        <div className={baseStyles}>
+          {isAssistant && (
+            <Code className="inline-block mr-2 h-4 w-4 text-emerald-500" />
+          )}
+          <div className={isAssistant ? proseStyles : ''}>
+            {content.split('\n\n').map((paragraph, index) => (
+              <React.Fragment key={index}>
+                {formatParagraph(paragraph)}
+              </React.Fragment>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
 const App = () => {
   const [messages, setMessages] = useState([
