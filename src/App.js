@@ -51,32 +51,94 @@ const DataStaxLogo = ({ isDarkMode }) => {
       prose-h4:mb-4
     `;
   
-    const content = message?.content || '';
-  
-    // Define formatParagraph function here
-    const formatParagraph = (text) => {
-      // Regular expression to match image filenames with extensions like .jpg, .jpeg, .png, etc.
+    const formatProduct = (text) => {
       const imageRegex = /\b([a-zA-Z0-9_-]+\.(jpg|jpeg|png|gif))\b/g;
-      
-      // Split text by image matches and intersperse with image tags
-      const parts = text.split(imageRegex);
+      let parts = [];
+      let lastIndex = 0;
+      let match;
   
-      return parts.map((part, index) => {
-        // Check if part matches an image filename (e.g., dsh916.jpg)
-        if (imageRegex.test(part)) {
-          return (
-            <img
-              key={index}
-              src={`/images/${part}`}  // Construct path to image
-              alt={part}
-              className="my-2 w-full max-w-md h-auto rounded-md border"
-            />
-          );
+      while ((match = imageRegex.exec(text)) !== null) {
+        // Add text before the match
+        if (match.index > lastIndex) {
+          parts.push({ type: 'text', content: text.slice(lastIndex, match.index) });
         }
-        
-        // Render text normally if not an image
-        return <span key={index}>{part}</span>;
-      });
+  
+        // Get the description (text until next image or end)
+        const nextMatch = imageRegex.exec(text);
+        const descEnd = nextMatch ? nextMatch.index : text.length;
+        imageRegex.lastIndex = nextMatch ? nextMatch.index : text.length;
+  
+        // Add image and its description
+        parts.push({
+          type: 'image',
+          filename: match[1],
+          description: text.slice(match.index + match[0].length, descEnd).trim()
+        });
+  
+        lastIndex = nextMatch ? nextMatch.index : text.length;
+      }
+  
+      // Add any remaining text
+      if (lastIndex < text.length) {
+        parts.push({ type: 'text', content: text.slice(lastIndex) });
+      }
+  
+      return (
+        <div className="space-y-4">
+          {parts.map((part, index) => {
+            if (part.type === 'image') {
+              return (
+                <div 
+                  key={index}
+                  className={`rounded-lg overflow-hidden ${
+                    isDarkMode ? 'bg-zinc-800' : 'bg-white'
+                  } shadow-sm border ${
+                    isDarkMode ? 'border-zinc-700' : 'border-zinc-200'
+                  }`}
+                >
+                  <div className="flex p-4 gap-4">
+                    <div className="flex-shrink-0">
+                      <img
+                        src={`/images/${part.filename}`}
+                        alt="Product"
+                        className="w-20 h-20 rounded-md border object-cover"
+                        style={{
+                          width: '80px',
+                          height: '80px',
+                          minWidth: '80px',
+                          minHeight: '80px',
+                          maxWidth: '80px',
+                          maxHeight: '80px'
+                        }}
+                      />
+                    </div>
+                    <div className="flex-grow">
+                      <h4 className={`text-lg font-semibold mb-2 ${
+                        isDarkMode ? 'text-zinc-100' : 'text-zinc-800'
+                      }`}>
+                        {part.filename.split('.')[0].replace(/-/g, ' ')}
+                      </h4>
+                      <p className={`text-sm ${
+                        isDarkMode ? 'text-zinc-400' : 'text-zinc-600'
+                      }`}>
+                        {part.description}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            
+            return part.content.trim() ? (
+              <p key={index} className={
+                isDarkMode ? 'text-zinc-300' : 'text-zinc-700'
+              }>
+                {part.content.trim()}
+              </p>
+            ) : null;
+          })}
+        </div>
+      );
     };
   
     return (
@@ -86,10 +148,8 @@ const DataStaxLogo = ({ isDarkMode }) => {
             <Code className="inline-block mr-2 h-4 w-4 text-emerald-500" />
           )}
           <div className={isAssistant ? proseStyles : ''}>
-            {content.split('\n\n').map((paragraph, index) => (
-              <React.Fragment key={index}>
-                {formatParagraph(paragraph)}
-              </React.Fragment>
+            {message.content.split('\n\n').map((paragraph, index) => (
+              formatProduct(paragraph)
             ))}
           </div>
         </div>
