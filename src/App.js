@@ -84,7 +84,7 @@ const DataStaxLogo = ({ isDarkMode }) => {
       }
   
       return (
-        <div className="space-y-4">
+        <div className="space-y-4 !flex-row">
           {parts.map((part, index) => {
             if (part.type === 'image') {
               return (
@@ -96,8 +96,8 @@ const DataStaxLogo = ({ isDarkMode }) => {
                     isDarkMode ? 'border-zinc-700' : 'border-zinc-200'
                   }`}
                 >
-                  <div className="flex p-4 gap-4">
-                    <div className="flex-shrink-0">
+                  <div className="flex items-center p-4 gap-3">
+                    <div className="flex-row">
                       <img
                         src={`/images/${part.filename}`}
                         alt="Product"
