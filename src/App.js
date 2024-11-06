@@ -50,7 +50,6 @@ const DataStaxLogo = ({ isDarkMode }) => {
       prose-li:my-0
       prose-h4:mb-4
     `;
-  
     const formatProduct = (text) => {
       const imageRegex = /\b([a-zA-Z0-9_-]+\.(jpg|jpeg|png|gif))\b/g;
       let parts = [];
@@ -84,7 +83,7 @@ const DataStaxLogo = ({ isDarkMode }) => {
       }
   
       return (
-        <div className="space-y-4 !flex-row">
+        <div className="space-y-4">
           {parts.map((part, index) => {
             if (part.type === 'image') {
               return (
@@ -92,12 +91,10 @@ const DataStaxLogo = ({ isDarkMode }) => {
                   key={index}
                   className={`rounded-lg overflow-hidden ${
                     isDarkMode ? 'bg-zinc-800' : 'bg-white'
-                  } shadow-sm border ${
-                    isDarkMode ? 'border-zinc-700' : 'border-zinc-200'
                   }`}
                 >
-                  <div className="flex items-center p-4 gap-3">
-                    <div className="flex-row">
+                  <div className="flex items-center pr-4 pt-6 gap-3">
+                    <div className="!flex-row">
                       <img
                         src={`/images/${part.filename}`}
                         alt="Product"
@@ -128,7 +125,6 @@ const DataStaxLogo = ({ isDarkMode }) => {
                 </div>
               );
             }
-            
             return part.content.trim() ? (
               <p key={index} className={
                 isDarkMode ? 'text-zinc-300' : 'text-zinc-700'
@@ -140,7 +136,6 @@ const DataStaxLogo = ({ isDarkMode }) => {
         </div>
       );
     };
-  
     return (
       <div className={`flex ${isAssistant ? 'justify-start' : 'justify-end'}`}>
         <div className={baseStyles}>
