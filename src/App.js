@@ -50,92 +50,91 @@ const DataStaxLogo = ({ isDarkMode }) => {
       prose-li:my-0
       prose-h4:mb-4
     `;
+  
+    const getProductName = (text) => {
+      // Try to find text in quotes
+      const quotedMatch = text.match(/"([^"]+)"/);
+      if (quotedMatch) return quotedMatch[1];
+      
+      // Try to find name after the product code
+      const nameMatch = text.match(/[A-Z0-9]+ - (.+?)(T-Shirt|Tee)/);
+      if (nameMatch) return nameMatch[1].trim();
+      
+      return '';
+    };
+  
     const formatProduct = (text) => {
-      const imageRegex = /\b([a-zA-Z0-9_-]+\.(jpg|jpeg|png|gif))\b/g;
-      let parts = [];
-      let lastIndex = 0;
-      let match;
-  
-      while ((match = imageRegex.exec(text)) !== null) {
-        // Add text before the match
-        if (match.index > lastIndex) {
-          parts.push({ type: 'text', content: text.slice(lastIndex, match.index) });
+      // Split text into lines and process each line
+      const lines = text.split('\n');
+      const products = [];
+      let currentProduct = null;
+      
+      lines.forEach(line => {
+        const imageMatch = line.match(/([a-zA-Z0-9_-]+\.(jpg|jpeg|png|gif))/);
+        if (imageMatch) {
+          if (currentProduct) {
+            products.push(currentProduct);
+          }
+          currentProduct = {
+            filename: imageMatch[1],
+            description: line,
+            productName: getProductName(line)
+          };
+        } else if (currentProduct && line.trim()) {
+          currentProduct.description = line.trim();
+          products.push(currentProduct);
+          currentProduct = null;
         }
+      });
   
-        // Get the description (text until next image or end)
-        const nextMatch = imageRegex.exec(text);
-        const descEnd = nextMatch ? nextMatch.index : text.length;
-        imageRegex.lastIndex = nextMatch ? nextMatch.index : text.length;
-  
-        // Add image and its description
-        parts.push({
-          type: 'image',
-          filename: match[1],
-          description: text.slice(match.index + match[0].length, descEnd).trim()
-        });
-  
-        lastIndex = nextMatch ? nextMatch.index : text.length;
-      }
-  
-      // Add any remaining text
-      if (lastIndex < text.length) {
-        parts.push({ type: 'text', content: text.slice(lastIndex) });
+      if (currentProduct) {
+        products.push(currentProduct);
       }
   
       return (
         <div className="space-y-4">
-          {parts.map((part, index) => {
-            if (part.type === 'image') {
-              return (
-                <div 
-                  key={index}
-                  className={`rounded-lg overflow-hidden ${
-                    isDarkMode ? 'bg-zinc-800' : 'bg-white'
-                  }`}
-                >
-                  <div className="flex items-center pr-4 pt-6 gap-3">
-                    <div className="!flex-row">
-                      <img
-                        src={`/images/${part.filename}`}
-                        alt="Product"
-                        className="w-20 h-20 rounded-md border object-cover"
-                        style={{
-                          width: '80px',
-                          height: '80px',
-                          minWidth: '80px',
-                          minHeight: '80px',
-                          maxWidth: '80px',
-                          maxHeight: '80px'
-                        }}
-                      />
-                    </div>
-                    <div className="flex-grow">
-                      <h4 className={`text-lg font-semibold mb-2 ${
-                        isDarkMode ? 'text-zinc-100' : 'text-zinc-800'
-                      }`}>
-                        {part.filename.split('.')[0].replace(/-/g, ' ')}
-                      </h4>
-                      <p className={`text-sm ${
-                        isDarkMode ? 'text-zinc-400' : 'text-zinc-600'
-                      }`}>
-                        {part.description}
-                      </p>
-                    </div>
-                  </div>
+          {products.map((product, index) => (
+            <div 
+              key={index}
+              className={`rounded-lg overflow-hidden ${
+                isDarkMode ? 'bg-zinc-800' : 'bg-white'
+              }`}
+            >
+              <div className="flex items-center pr-4 pt-6 gap-3">
+                <div className="flex-row">
+                  <img
+                    src={`/images/${product.filename}`}
+                    alt="Product"
+                    className="w-20 h-20 rounded-md border object-cover"
+                    style={{
+                      width: '80px',
+                      height: '80px',
+                      minWidth: '80px',
+                      minHeight: '80px',
+                      maxWidth: '80px',
+                      maxHeight: '80px'
+                    }}
+                  />
                 </div>
-              );
-            }
-            return part.content.trim() ? (
-              <p key={index} className={
-                isDarkMode ? 'text-zinc-300' : 'text-zinc-700'
-              }>
-                {part.content.trim()}
-              </p>
-            ) : null;
-          })}
+                <div className="flex-grow">
+                  <h4 className={`text-lg font-semibold mb-2 ${
+                    isDarkMode ? 'text-zinc-100' : 'text-zinc-800'
+                  }`}>
+                    {product.productName}
+                  </h4>
+                  <p className={`text-sm ${
+                    isDarkMode ? 'text-zinc-400' : 'text-zinc-600'
+                  }`}>
+                    {product.description}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       );
     };
+  
     return (
       <div className={`flex ${isAssistant ? 'justify-start' : 'justify-end'}`}>
         <div className={baseStyles}>
@@ -144,7 +143,15 @@ const DataStaxLogo = ({ isDarkMode }) => {
           )}
           <div className={isAssistant ? proseStyles : ''}>
             {message.content.split('\n\n').map((paragraph, index) => (
-              formatProduct(paragraph)
+              <div key={index}>
+                {paragraph.trim().startsWith('Here are') ? (
+                  <p className={isDarkMode ? 'text-zinc-300' : 'text-zinc-700'}>
+                    {paragraph}
+                  </p>
+                ) : (
+                  formatProduct(paragraph)
+                )}
+              </div>
             ))}
           </div>
         </div>
