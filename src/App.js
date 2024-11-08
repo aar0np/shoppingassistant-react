@@ -19,6 +19,7 @@ const DataStaxLogo = ({ isDarkMode }) => {
     </div>
   );
 };
+
   // Message component 
   const Message = ({ 
     message = { 
@@ -117,7 +118,7 @@ const DataStaxLogo = ({ isDarkMode }) => {
                   />
                 </div>
                 <div className="flex-grow">
-                  <h4 className={`text-lg font-semibold mb-2 ${
+                  <h4 className={`text-lg mb-2 ${
                     isDarkMode ? 'text-zinc-100' : 'text-zinc-800'
                   }`}>
                     {product.productName}
@@ -142,17 +143,25 @@ const DataStaxLogo = ({ isDarkMode }) => {
             <Code className="inline-block mr-2 h-4 w-4 text-emerald-500" />
           )}
           <div className={isAssistant ? proseStyles : ''}>
-            {message.content.split('\n\n').map((paragraph, index) => (
-              <div key={index}>
-                {paragraph.trim().startsWith('Here are') ? (
-                  <p className={isDarkMode ? 'text-zinc-300' : 'text-zinc-700'}>
-                    {paragraph}
-                  </p>
-                ) : (
-                  formatProduct(paragraph)
-                )}
-              </div>
-            ))}
+            {message.content.includes('.png') || message.content.includes('.jpg') ? (
+              // Handle product listings
+              message.content.split('\n\n').map((paragraph, index) => (
+                <div key={index}>
+                  {paragraph.trim().startsWith('Here are') ? (
+                    <p className={isDarkMode ? 'text-zinc-300' : 'text-zinc-700'}>
+                      {paragraph}
+                    </p>
+                  ) : (
+                    formatProduct(paragraph)
+                  )}
+                </div>
+              ))
+            ) : (
+              // Handle regular messages
+              <p className={isDarkMode ? 'text-zinc-300' : 'text-zinc-700'}>
+                {message.content}
+              </p>
+            )}
           </div>
         </div>
       </div>
