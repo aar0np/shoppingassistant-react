@@ -58,7 +58,7 @@ const DataStaxLogo = ({ isDarkMode }) => {
       if (quotedMatch) return quotedMatch[1];
       
       // Try to find name after the product code
-      const nameMatch = text.match(/[A-Z0-9]+ - (.+?)(T-Shirt|Tee)/);
+      const nameMatch = text.match(/[A-Z0-9]+ - (.+?)(T-Shirt|Tee|Hoodie|T-Shirts|Hoodies|Jacket|Sweatshirt)/);
       if (nameMatch) return nameMatch[1].trim();
       
       return '';
@@ -118,7 +118,7 @@ const DataStaxLogo = ({ isDarkMode }) => {
                   />
                 </div>
                 <div className="flex-grow">
-                  <h4 className={`text-lg mb-2 ${
+                  <h4 className={` mb-2 ${
                     isDarkMode ? 'text-zinc-100' : 'text-zinc-800'
                   } whitespace-normal`}>
                     {product.productName}
