@@ -120,7 +120,7 @@ const DataStaxLogo = ({ isDarkMode }) => {
                 <div className="flex-grow">
                   <h4 className={`text-lg mb-2 ${
                     isDarkMode ? 'text-zinc-100' : 'text-zinc-800'
-                  }`}>
+                  } whitespace-normal`}>
                     {product.productName}
                   </h4>
                   <p className={`text-sm ${
@@ -136,6 +136,20 @@ const DataStaxLogo = ({ isDarkMode }) => {
       );
     };
   
+    // Helper function to extract product type from content
+    const getProductType = (content) => {
+      if (content.toLowerCase().includes('t-shirt')) return 't-shirts';
+      if (content.toLowerCase().includes('hoodie')) return 'hoodies';
+      if (content.toLowerCase().includes('sweatshirt')) return 'sweatshirts';
+      return 'products';
+    };
+  
+    // Helper function to format introduction text
+    const formatIntroText = (content) => {
+      const productType = getProductType(content);
+      return `Here are the ${productType} available from DataStax Apparel:`;
+    };
+  
     return (
       <div className={`flex ${isAssistant ? 'justify-start' : 'justify-end'}`}>
         <div className={baseStyles}>
@@ -145,17 +159,12 @@ const DataStaxLogo = ({ isDarkMode }) => {
           <div className={isAssistant ? proseStyles : ''}>
             {message.content.includes('.png') || message.content.includes('.jpg') ? (
               // Handle product listings
-              message.content.split('\n\n').map((paragraph, index) => (
-                <div key={index}>
-                  {paragraph.trim().startsWith('Here are') ? (
-                    <p className={isDarkMode ? 'text-zinc-300' : 'text-zinc-700'}>
-                      {paragraph}
-                    </p>
-                  ) : (
-                    formatProduct(paragraph)
-                  )}
-                </div>
-              ))
+              <div className="space-y-4">
+                <p className={isDarkMode ? 'text-zinc-300' : 'text-zinc-700'}>
+                  {formatIntroText(message.content)}
+                </p>
+                {formatProduct(message.content)}
+              </div>
             ) : (
               // Handle regular messages
               <p className={isDarkMode ? 'text-zinc-300' : 'text-zinc-700'}>
@@ -167,7 +176,7 @@ const DataStaxLogo = ({ isDarkMode }) => {
       </div>
     );
   };
-
+  
 const App = () => {
   const [messages, setMessages] = useState([
     {
