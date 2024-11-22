@@ -51,6 +51,18 @@ const Message = ({
     prose-h4:mb-4
   `;
 
+  const getProductName = (text) => {
+    // Try to find text in quotes
+    const quotedMatch = text.match(/"([^"]+)"/);
+    if (quotedMatch) return quotedMatch[1];
+    
+    // Try to find name after the product code
+    const nameMatch = text.match(/[A-Z0-9]+ - (.+?)(T-Shirt|Tee|Hoodie|T-Shirts|Hoodies|Jacket|Sweatshirt)/);
+    if (nameMatch) return nameMatch[1].trim();
+    
+    return '';
+  };
+
   const formatProduct = (text) => {
     // Split text into lines and process each line
     const lines = text.split('\n');
@@ -63,26 +75,13 @@ const Message = ({
         if (currentProduct) {
           products.push(currentProduct);
         }
-        const description = line.replace(/\(Image: [^)]+\)/, '').trim();
-        
-        // Extract product name - look for the title before the colon
-        let productName = '';
-        const titleMatch = description.match(/^([^:]+):/);
-        if (titleMatch) {
-          productName = titleMatch[1].trim();
-        } else {
-          // Fallback to the first part of the description if no colon
-          productName = description.split(':')[0].trim();
-        }
-        
         currentProduct = {
           filename: imageMatch[1],
-          description: description,
-          productName: productName
+          description: line,
+          productName: getProductName(line)
         };
       } else if (currentProduct && line.trim()) {
-        // Append additional description lines
-        currentProduct.description = currentProduct.description + ' ' + line.trim();
+        currentProduct.description = line.trim();
         products.push(currentProduct);
         currentProduct = null;
       }
@@ -105,7 +104,7 @@ const Message = ({
               <div className="flex-row">
                 <img
                   src={`/images/${product.filename}`}
-                  alt={product.productName}
+                  alt="Product"
                   className="w-20 h-20 rounded-md border object-cover"
                   style={{
                     width: '80px',
@@ -139,6 +138,8 @@ const Message = ({
   // Helper function to extract product type from content
   const getProductType = (content) => {
     if (content.toLowerCase().includes('t-shirt')) return 't-shirts';
+    if (content.toLowerCase().includes('tshirt')) return 'tshirts';
+    if (content.toLowerCase().includes('jacket')) return 'jackets';
     if (content.toLowerCase().includes('hoodie')) return 'hoodies';
     if (content.toLowerCase().includes('sweatshirt')) return 'sweatshirts';
     return 'products';
@@ -293,9 +294,29 @@ const App = () => {
         </div>
 
         {/* Messages Area */}
-        <div className={`flex-grow overflow-auto p-4 ${
-          isDarkMode ? 'bg-zinc-900' : 'bg-zinc-50'
-        }`} ref={scrollAreaRef}>
+        <div 
+          className={`flex-grow overflow-auto p-4 ${
+            isDarkMode ? 'bg-zinc-900' : 'bg-zinc-50'
+          }`} 
+          ref={scrollAreaRef}
+          style={{
+            scrollbarWidth: 'thin',
+            scrollbarColor: isDarkMode ? '#3f3f46 #27272a' : 'auto',
+            '&::-webkit-scrollbar': {
+              width: '8px',
+            },
+            '&::-webkit-scrollbar-track': {
+              backgroundColor: isDarkMode ? '#27272a' : 'auto',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              backgroundColor: isDarkMode ? '#3f3f46' : 'auto',
+              borderRadius: '4px',
+            },
+            '&::-webkit-scrollbar-thumb:hover': {
+              backgroundColor: isDarkMode ? '#52525b' : 'auto',
+            },
+          }}
+        >
           <div className="space-y-4">
             {messages.map((message) => (
               <Message
