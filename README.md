@@ -13,7 +13,7 @@ mv .env_sample .env
 Edit this file, and define the following variable.  This value can be retrieved from your (local) Langflow instance by clicking on the "</> API" button.
 
 ```
-LANGFLOW_URL=<your-astra-db-id>
+LANGFLOW_URL=<your Langflow project's API URLd>
 ```
 
 ## React.js dependencies
@@ -21,7 +21,7 @@ LANGFLOW_URL=<your-astra-db-id>
 Be sure to install the following npm packages:
 
 ```
-npm @chatscope/chat-ui-kit-react
+npm install @chatscope/chat-ui-kit-react
 ```
 
 ## Available Scripts
