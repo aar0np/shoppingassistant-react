@@ -1,14 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Send, Moon, Sun, Code } from 'lucide-react';
+import React, { useState, useEffect, useRef } from "react";
+import { Send, Moon, Sun, Code } from "lucide-react";
 
 const DataStaxLogo = ({ isDarkMode }) => {
   return (
-    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-      isDarkMode ? 'bg-zinc-700' : 'bg-zinc-200'
-    }`}>
-      <svg 
-        viewBox="0 0 30 13" 
-        className={`w-5 h-5 ${isDarkMode ? 'text-zinc-100' : 'text-zinc-900'}`}
+    <div
+      className={`w-10 h-10 rounded-full flex items-center justify-center ${
+        isDarkMode ? "bg-zinc-700" : "bg-zinc-200"
+      }`}
+    >
+      <svg
+        viewBox="0 0 30 13"
+        className={`w-5 h-5 ${isDarkMode ? "text-zinc-100" : "text-zinc-900"}`}
       >
         <path
           fill="currentColor"
@@ -19,26 +21,61 @@ const DataStaxLogo = ({ isDarkMode }) => {
   );
 };
 
-// Message component 
-const Message = ({ 
-  message = { 
-    sender: 'assistant',
-    content: ''
-  }, 
-  isDarkMode = true 
+const parseMessage = (message) => {
+  const messageParts = message.split("\n\n");
+  // The intro text is usually the first part of the message, if it's not JSON we can assume it is intro text
+  let intro;
+  try {
+    JSON.parse(`{${messageParts[0]}}`);
+  } catch {
+    intro = messageParts[0];
+    messageParts.shift();
+  }
+
+  let products = [];
+  try {
+    products = messageParts.map((product) => {
+      product = product.trim();
+      if (!(product.startsWith("{") && product.endsWith("}"))) {
+        product = `{${product}}`;
+      }
+      // Use a regex to remove a number (with optional decimal point) at the start inside the brackets
+      product = product.replace(/\{\s*\d+\.?\d*\s*,?/, "{");
+      return JSON.parse(product);
+    });
+  } catch {
+    console.warn("Error parsing product JSON");
+  }
+  return { intro, products };
+};
+
+// Message component
+const Message = ({
+  message = {
+    sender: "assistant",
+    content: "",
+  },
+  isDarkMode = true,
 }) => {
-  const isAssistant = message?.sender === 'assistant';
+  const isAssistant = message?.sender === "assistant";
+
+  const { intro, products } = parseMessage(message.content);
 
   const baseStyles = `
     rounded-lg p-3 max-w-[80%]
-    ${isDarkMode 
-      ? isAssistant ? 'bg-zinc-800 text-zinc-300' : 'bg-zinc-700 text-zinc-200'
-      : isAssistant ? 'bg-white text-zinc-800 border border-zinc-200' : 'bg-zinc-200 text-zinc-800'
+    ${
+      isDarkMode
+        ? isAssistant
+          ? "bg-zinc-800 text-zinc-300"
+          : "bg-zinc-700 text-zinc-200"
+        : isAssistant
+        ? "bg-white text-zinc-800 border border-zinc-200"
+        : "bg-zinc-200 text-zinc-800"
     }
   `;
 
   const proseStyles = `
-    prose ${isDarkMode ? 'prose-invert' : ''} 
+    prose ${isDarkMode ? "prose-invert" : ""} 
     prose-zinc 
     max-w-none
     prose-headings:mb-2 prose-headings:mt-4
@@ -51,82 +88,94 @@ const Message = ({
     prose-h4:mb-4
   `;
 
-  const getProductName = (text) => {
-    // Try to find text in quotes
-    const quotedMatch = text.match(/"([^"]+)"/);
-    if (quotedMatch) return quotedMatch[1];
-    
-    // Try to find name after the product code
-    const nameMatch = text.match(/[A-Z0-9]+ - (.+?)(T-Shirt|Tee|Hoodie|T-Shirts|Hoodies|Jacket|Sweatshirt)/);
-    if (nameMatch) return nameMatch[1].trim();
-    
-    return '';
-  };
+  // const getProductName = (text) => {
+  //   // Try to find text in quotes
+  //   const quotedMatch = text.match(/"([^"]+)"/);
+  //   if (quotedMatch) return quotedMatch[1];
 
-  const formatProduct = (text) => {
+  //   // Try to find name after the product code
+  //   const nameMatch = text.match(
+  //     /[A-Z0-9]+ - (.+?)(T-Shirt|Tee|Hoodie|T-Shirts|Hoodies|Jacket|Sweatshirt)/
+  //   );
+  //   if (nameMatch) return nameMatch[1].trim();
+
+  //   return "";
+  // };
+
+  const formatProduct = (products) => {
     // Split text into lines and process each line
-    const lines = text.split('\n');
-    const products = [];
-    let currentProduct = null;
-    
-    lines.forEach(line => {
-      const imageMatch = line.match(/([a-zA-Z0-9_-]+\.(jpg|jpeg|png|gif))/);
-      if (imageMatch) {
-        if (currentProduct) {
-          products.push(currentProduct);
-        }
-        currentProduct = {
-          filename: imageMatch[1],
-          description: line,
-          productName: getProductName(line)
-        };
-      } else if (currentProduct && line.trim()) {
-        currentProduct.description = line.trim();
-        products.push(currentProduct);
-        currentProduct = null;
-      }
-    });
+    // const lines = text.split("\n");
+    // const products = [];
+    // let currentProduct = null;
 
-    if (currentProduct) {
-      products.push(currentProduct);
-    }
+    // lines.forEach((line) => {
+    //   const imageMatch = line.match(/([a-zA-Z0-9_-]+\.(jpg|jpeg|png|gif))/);
+    //   if (imageMatch) {
+    //     if (currentProduct) {
+    //       products.push(currentProduct);
+    //     }
+    //     currentProduct = {
+    //       filename: imageMatch[1],
+    //       description: line,
+    //       productName: getProductName(line),
+    //     };
+    //   } else if (currentProduct && line.trim()) {
+    //     currentProduct.description = line.trim();
+    //     products.push(currentProduct);
+    //     currentProduct = null;
+    //   }
+    // });
+
+    // if (currentProduct) {
+    //   products.push(currentProduct);
+    // }
 
     return (
       <div className="space-y-4">
-        {products.map((product, index) => (
-          <div 
+        {products.map(({ title, desc, image }, index) => (
+          <div
             key={index}
             className={`rounded-lg overflow-hidden ${
-              isDarkMode ? 'bg-zinc-800' : 'bg-white'
+              isDarkMode ? "bg-zinc-800" : "bg-white"
             }`}
           >
             <div className="flex items-center pr-4 pt-6 gap-3">
-              <div className="flex-row">
-                <img
-                  src={`/images/${product.filename}`}
-                  alt="Product"
-                  className="w-20 h-20 rounded-md border object-cover"
-                  style={{
-                    width: '80px',
-                    height: '80px',
-                    minWidth: '80px',
-                    minHeight: '80px',
-                    maxWidth: '80px',
-                    maxHeight: '80px'
-                  }}
-                />
-              </div>
+              {image && (
+                <div className="flex-row">
+                  <img
+                    src={`/images/${image}`}
+                    alt="Product"
+                    className="w-20 h-20 rounded-md border object-cover"
+                    style={{
+                      width: "80px",
+                      height: "80px",
+                      minWidth: "80px",
+                      minHeight: "80px",
+                      maxWidth: "80px",
+                      maxHeight: "80px",
+                    }}
+                  />
+                </div>
+              )}
               <div className="flex-grow">
-                <h4 className={`mb-2 ${
-                  isDarkMode ? 'text-zinc-100' : 'text-zinc-800'
-                } whitespace-normal`}>
-                  {product.productName}
-                </h4>
-                <p className={`text-sm ${
-                  isDarkMode ? 'text-zinc-400' : 'text-zinc-600'
-                }`}>
-                  {product.description}
-                </p>
+                {title && (
+                  <h4
+                    className={`mb-2 ${
+                      isDarkMode ? "text-zinc-100" : "text-zinc-800"
+                    } whitespace-normal`}
+                  >
+                    {title}
+                  </h4>
+                )}
+                {desc && (
+                  <p
+                    className={`text-sm ${
+                      isDarkMode ? "text-zinc-400" : "text-zinc-600"
+                    }`}
+                  >
+                    {desc}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -136,42 +185,51 @@ const Message = ({
   };
 
   // Helper function to extract product type from content
-  const getProductType = (content) => {
-    if (content.toLowerCase().includes('t-shirt')) return 't-shirts';
-    if (content.toLowerCase().includes('tshirt')) return 'tshirts';
-    if (content.toLowerCase().includes('jacket')) return 'jackets';
-    if (content.toLowerCase().includes('hoodie')) return 'hoodies';
-    if (content.toLowerCase().includes('sweatshirt')) return 'sweatshirts';
-    return 'products';
-  };
+  // const getProductType = (content) => {
+  //   if (content.toLowerCase().includes("t-shirt")) return "t-shirts";
+  //   if (content.toLowerCase().includes("tshirt")) return "tshirts";
+  //   if (content.toLowerCase().includes("jacket")) return "jackets";
+  //   if (content.toLowerCase().includes("hoodie")) return "hoodies";
+  //   if (content.toLowerCase().includes("sweatshirt")) return "sweatshirts";
+  //   return "products";
+  // };
 
   // Helper function to format introduction text
-  const formatIntroText = (content) => {
-    const productType = getProductType(content);
-    return `Here are the ${productType} available from DataStax Apparel:`;
-  };
+  // const formatIntroText = (content) => {
+  //   const productType = getProductType(content);
+  //   return `Here are the ${productType} available from DataStax Apparel:`;
+  // };
 
   return (
-    <div className={`flex ${isAssistant ? 'justify-start' : 'justify-end'}`}>
+    <div className={`flex ${isAssistant ? "justify-start" : "justify-end"}`}>
       <div className={baseStyles}>
         {isAssistant && (
           <Code className="inline-block mr-2 h-4 w-4 text-emerald-500" />
         )}
-        <div className={isAssistant ? proseStyles : ''}>
-          {message.content.includes('.png') || message.content.includes('.jpg') ? (
+        <div className={isAssistant ? proseStyles : ""}>
+          {/* {message.content.includes(".png") ||
+          message.content.includes(".jpg") ? (
             // Handle product listings
             <div className="space-y-4">
-              <p className={isDarkMode ? 'text-zinc-300' : 'text-zinc-700'}>
+              <p className={isDarkMode ? "text-zinc-300" : "text-zinc-700"}>
                 {formatIntroText(message.content)}
               </p>
               {formatProduct(message.content)}
             </div>
           ) : (
             // Handle regular messages
-            <p className={isDarkMode ? 'text-zinc-300' : 'text-zinc-700'}>
+            <p className={isDarkMode ? "text-zinc-300" : "text-zinc-700"}>
               {message.content}
             </p>
-          )}
+          )} */}
+          <div className="flex flex-col gap-3">
+            {intro && (
+              <p className={isDarkMode ? "text-zinc-300" : "text-zinc-700"}>
+                {intro}
+              </p>
+            )}
+            {products.length > 0 && formatProduct(products)}
+          </div>
         </div>
       </div>
     </div>
@@ -182,11 +240,12 @@ const App = () => {
   const [messages, setMessages] = useState([
     {
       id: 1,
-      content: "Hello, what DataStax Astra, Langflow, or Cassandra gear can I help you find?",
-      sender: 'assistant'
-    }
+      content:
+        "Hello, what DataStax Astra, Langflow, or Cassandra gear can I help you find?",
+      sender: "assistant",
+    },
   ]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isTyping, setIsTyping] = useState(false);
   const scrollAreaRef = useRef(null);
@@ -203,11 +262,11 @@ const App = () => {
       const newMessage = {
         id: messages.length + 1,
         content: input.trim(),
-        sender: 'user'
+        sender: "user",
       };
       setMessages([...messages, newMessage]);
-      setInput('');
-      
+      setInput("");
+
       // Process message to Langflow
       setIsTyping(true);
       await processMessageToLangflow([...messages, newMessage], input.trim());
@@ -215,105 +274,117 @@ const App = () => {
   };
 
   async function processMessageToLangflow(chatMessages, chatMessage) {
-    let langflowMessage = { 
-      input_value: chatMessage, 
-      output_type: "chat", 
-      input_type: "chat"
+    let langflowMessage = {
+      input_value: chatMessage,
+      output_type: "chat",
+      input_type: "chat",
     };
-    
+
     try {
       const response = await fetch(process.env.REACT_APP_LANGFLOW_URL, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(langflowMessage)
+        body: JSON.stringify(langflowMessage),
       });
-      
+
       const data = await response.json();
+      const { text, id } = data.outputs[0].outputs[0].results.message.data;
       setMessages([
         ...chatMessages,
         {
-          id: chatMessages.length + 1,
-          content: data.outputs[0].outputs[0].results.message.data.text,
-          sender: 'assistant'
-        }
+          id,
+          content: text,
+          sender: "assistant",
+        },
       ]);
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
     } finally {
       setIsTyping(false);
     }
   }
 
   return (
-    <div className={`min-h-screen w-full flex flex-col items-center p-4 ${
-      isDarkMode 
-        ? 'bg-zinc-950 text-zinc-100' 
-        : 'bg-zinc-100 text-zinc-900'
-    }`}>
-      <div className={`w-full max-w-2xl h-[600px] flex flex-col rounded-lg overflow-hidden ${
-        isDarkMode
-          ? 'bg-zinc-900 border-zinc-800'
-          : 'bg-white border-zinc-200'
-      } border`}>
-      
+    <div
+      className={`min-h-screen w-full flex flex-col items-center p-4 ${
+        isDarkMode ? "bg-zinc-950 text-zinc-100" : "bg-zinc-100 text-zinc-900"
+      }`}
+    >
+      <div
+        className={`w-full max-w-2xl h-[600px] flex flex-col rounded-lg overflow-hidden ${
+          isDarkMode
+            ? "bg-zinc-900 border-zinc-800"
+            : "bg-white border-zinc-200"
+        } border`}
+      >
         {/* Header */}
-        <div className={`flex items-center justify-between p-4 border-b ${
-          isDarkMode ? 'border-zinc-800' : 'border-zinc-200'
-        }`}>
+        <div
+          className={`flex items-center justify-between p-4 border-b ${
+            isDarkMode ? "border-zinc-800" : "border-zinc-200"
+          }`}
+        >
           <div className="flex items-center gap-3">
             <DataStaxLogo isDarkMode={isDarkMode} />
             <div>
-              <h2 className={`text-lg font-semibold ${
-                isDarkMode ? 'text-zinc-100' : 'text-zinc-900'
-              }`}>DataStax Apparel Assistant</h2>
+              <h2
+                className={`text-lg font-semibold ${
+                  isDarkMode ? "text-zinc-100" : "text-zinc-900"
+                }`}
+              >
+                DataStax Apparel Assistant
+              </h2>
               <p className="text-sm text-emerald-500">Online</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Sun className={`h-4 w-4 ${
-              isDarkMode ? 'text-zinc-400' : 'text-zinc-600'
-            }`} />
+            <Sun
+              className={`h-4 w-4 ${
+                isDarkMode ? "text-zinc-400" : "text-zinc-600"
+              }`}
+            />
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
               className={`w-11 h-6 rounded-full relative ${
-                isDarkMode ? 'bg-zinc-700' : 'bg-zinc-300'
+                isDarkMode ? "bg-zinc-700" : "bg-zinc-300"
               }`}
             >
               <div
                 className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-transform ${
-                  isDarkMode ? 'translate-x-5' : 'translate-x-0.5'
+                  isDarkMode ? "translate-x-5" : "translate-x-0.5"
                 }`}
               />
             </button>
-            <Moon className={`h-4 w-4 ${
-              isDarkMode ? 'text-zinc-400' : 'text-zinc-600'
-            }`} />
+            <Moon
+              className={`h-4 w-4 ${
+                isDarkMode ? "text-zinc-400" : "text-zinc-600"
+              }`}
+            />
           </div>
         </div>
 
         {/* Messages Area */}
-        <div 
+        <div
           className={`flex-grow overflow-auto p-4 ${
-            isDarkMode ? 'bg-zinc-900' : 'bg-zinc-50'
-          }`} 
+            isDarkMode ? "bg-zinc-900" : "bg-zinc-50"
+          }`}
           ref={scrollAreaRef}
           style={{
-            scrollbarWidth: 'thin',
-            scrollbarColor: isDarkMode ? '#3f3f46 #27272a' : 'auto',
-            '&::-webkit-scrollbar': {
-              width: '8px',
+            scrollbarWidth: "thin",
+            scrollbarColor: isDarkMode ? "#3f3f46 #27272a" : "auto",
+            "&::-webkit-scrollbar": {
+              width: "8px",
             },
-            '&::-webkit-scrollbar-track': {
-              backgroundColor: isDarkMode ? '#27272a' : 'auto',
+            "&::-webkit-scrollbar-track": {
+              backgroundColor: isDarkMode ? "#27272a" : "auto",
             },
-            '&::-webkit-scrollbar-thumb': {
-              backgroundColor: isDarkMode ? '#3f3f46' : 'auto',
-              borderRadius: '4px',
+            "&::-webkit-scrollbar-thumb": {
+              backgroundColor: isDarkMode ? "#3f3f46" : "auto",
+              borderRadius: "4px",
             },
-            '&::-webkit-scrollbar-thumb:hover': {
-              backgroundColor: isDarkMode ? '#52525b' : 'auto',
+            "&::-webkit-scrollbar-thumb:hover": {
+              backgroundColor: isDarkMode ? "#52525b" : "auto",
             },
           }}
         >
@@ -327,11 +398,13 @@ const App = () => {
             ))}
             {isTyping && (
               <div className="flex justify-start">
-                <div className={`rounded-lg p-3 max-w-[80%] ${
-                  isDarkMode
-                    ? 'bg-zinc-800 text-zinc-300'
-                    : 'bg-white text-zinc-800 border border-zinc-200'
-                }`}>
+                <div
+                  className={`rounded-lg p-3 max-w-[80%] ${
+                    isDarkMode
+                      ? "bg-zinc-800 text-zinc-300"
+                      : "bg-white text-zinc-800 border border-zinc-200"
+                  }`}
+                >
                   <Code className="inline-block mr-2 h-4 w-4 text-emerald-500" />
                   Checking stock availability...
                 </div>
@@ -341,9 +414,11 @@ const App = () => {
         </div>
 
         {/* Input Area */}
-        <div className={`p-4 border-t ${
-          isDarkMode ? 'border-zinc-800' : 'border-zinc-200'
-        }`}>
+        <div
+          className={`p-4 border-t ${
+            isDarkMode ? "border-zinc-800" : "border-zinc-200"
+          }`}
+        >
           <form onSubmit={handleSend} className="flex items-center gap-2">
             <input
               type="text"
@@ -352,8 +427,8 @@ const App = () => {
               placeholder="Type your message..."
               className={`flex-grow p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
                 isDarkMode
-                  ? 'bg-zinc-800 border-zinc-700 text-zinc-300 placeholder-zinc-500'
-                  : 'bg-zinc-100 border-zinc-200 text-zinc-900 placeholder-zinc-500'
+                  ? "bg-zinc-800 border-zinc-700 text-zinc-300 placeholder-zinc-500"
+                  : "bg-zinc-100 border-zinc-200 text-zinc-900 placeholder-zinc-500"
               } border`}
             />
             <button
